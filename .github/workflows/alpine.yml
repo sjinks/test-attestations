@@ -72,3 +72,14 @@ jobs:
           subject-name: ghcr.io/${{ github.repository }}/alpine
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
+      - name: Generate SBOM
+        run: docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format "{{ json .SBOM }}" | jq -c -r '.[].SPDX' > sbom.spdx.json
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@5026d3663739160db546203eeaffa6aa1c51a4d6 # v1.4.1
+        with:
+          subject-name: ghcr.io/${{ github.repository }}/alpine
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: 'sbom.spdx.json'
+          push-to-registry: true
