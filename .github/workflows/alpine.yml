@@ -75,8 +75,8 @@ jobs:
 
       - name: Generate SBOM
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format "{{ json (index .SBOM "linux/amd64").SPDX }}" > sbom-amd64.spdx.json
-          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format "{{ json (index .SBOM "linux/arm64").SPDX }}" > sbom-arm64.spdx.json
+          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format '{{ json (index .SBOM "linux/amd64").SPDX }}' > sbom-amd64.spdx.json
+          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format '{{ json (index .SBOM "linux/arm64").SPDX }}' > sbom-arm64.spdx.json
 
       - name: Attest SBOM
         uses: actions/attest-sbom@v1
