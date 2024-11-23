@@ -53,7 +53,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           outputs: |
-            type=docker
+            type=docker,rewrite-timestamp=true
             type=image,push=true,rewrite-timestamp=true
           provenance: true
           sbom: true
@@ -74,12 +74,22 @@ jobs:
           push-to-registry: true
 
       - name: Generate SBOM
-        run: docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format "{{ json .SBOM }}" | jq -c -r '.[].SPDX' > sbom.spdx.json
+        run: |
+          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format "{{ json (index .SBOM "linux/amd64").SPDX }}" > sbom-amd64.spdx.json
+          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/alpine:custom --format "{{ json (index .SBOM "linux/arm64").SPDX }}" > sbom-arm64.spdx.json
 
       - name: Attest SBOM
-        uses: actions/attest-sbom@5026d3663739160db546203eeaffa6aa1c51a4d6 # v1.4.1
+        uses: actions/attest-sbom@v1
         with:
           subject-name: ghcr.io/${{ github.repository }}/alpine
           subject-digest: ${{ steps.push.outputs.digest }}
-          sbom-path: 'sbom.spdx.json'
+          sbom-path: 'sbom-amd64.spdx.json'
+          push-to-registry: true
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository }}/alpine
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: 'sbom-arm64.spdx.json'
           push-to-registry: true
